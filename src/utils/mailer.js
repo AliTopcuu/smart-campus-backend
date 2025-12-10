@@ -1,21 +1,8 @@
 const nodemailer = require('nodemailer');
 
-// MAIL_HOST'tan http:// veya https:// prefix'ini temizle
-const cleanMailHost = process.env.MAIL_HOST?.replace(/^https?:\/\//, '').trim();
-
-const isMailConfigured = Boolean(cleanMailHost && process.env.MAIL_USER && process.env.MAIL_PASS);
-
-const transporter = isMailConfigured
-  ? nodemailer.createTransport({
-      host: cleanMailHost,
-      port: Number(process.env.MAIL_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
-      },
-    })
-  : null;
+// Email gönderimi devre dışı - sadece loglara yaz
+const isMailConfigured = false; // Email gönderimini devre dışı bırak
+const transporter = null;
 
 const sendVerificationEmail = async (email, token) => {
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
