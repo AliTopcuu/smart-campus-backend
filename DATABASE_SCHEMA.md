@@ -61,6 +61,21 @@ Bölüm bilgileri tablosu.
 | createdAt | DATE | Oluşturulma tarihi |
 | updatedAt | DATE | Güncellenme tarihi |
 
+## ER Diagram
+
+Veritabanı şeması için ER diagram oluşturulabilir. Önerilen araçlar:
+- [dbdiagram.io](https://dbdiagram.io) - Online ER diagram tool
+- [draw.io](https://draw.io) - Genel amaçlı diagram tool
+- [Lucidchart](https://lucidchart.com) - Profesyonel diagram tool
+
+### İlişki Özeti
+```
+Users (1) ──< (1) Students
+Users (1) ──< (1) Faculties
+Departments (1) ──< (N) Students
+Departments (1) ──< (N) Faculties
+```
+
 ## İlişkiler
 
 ### Users ↔ Students

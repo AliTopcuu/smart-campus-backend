@@ -24,10 +24,31 @@ Kullanıcı kaydı oluşturur.
 **Response:** `201 Created`
 ```json
 {
-  "message": "Kayıt başarılı. Email doğrulama linki gönderildi.",
-  "user": { ... }
+  "message": "Registration successful. Check your email to verify your account.",
+  "user": {
+    "id": 1,
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "role": "student",
+    "phone": null,
+    "avatarUrl": null,
+    "studentNumber": "S123456",
+    "department": "Computer Science"
+  }
 }
 ```
+
+**Validation Rules:**
+- `fullName`: Minimum 3 karakter
+- `email`: Geçerli email formatı, unique
+- `password`: Minimum 8 karakter, en az 1 büyük harf, en az 1 rakam
+- `confirmPassword`: `password` ile eşleşmeli
+- `role`: "student", "faculty" veya "admin"
+- `termsAccepted`: true olmalı
+
+**Error Responses:**
+- `400`: Validation hatası
+- `400`: Email zaten kullanılıyor
 
 ### POST `/auth/verify-email`
 Email doğrulama token'ı ile hesabı aktifleştirir.
@@ -42,9 +63,13 @@ Email doğrulama token'ı ile hesabı aktifleştirir.
 **Response:** `200 OK`
 ```json
 {
-  "message": "Email başarıyla doğrulandı."
+  "message": "Email verified"
 }
 ```
+
+**Error Responses:**
+- `400`: Geçersiz token
+- `400`: Token süresi dolmuş
 
 ### POST `/auth/login`
 Kullanıcı girişi yapar.
@@ -61,11 +86,26 @@ Kullanıcı girişi yapar.
 **Response:** `200 OK`
 ```json
 {
-  "accessToken": "string",
-  "refreshToken": "string",
-  "user": { ... }
+  "user": {
+    "id": 1,
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "role": "student",
+    "phone": null,
+    "avatarUrl": null,
+    "studentNumber": "S123456",
+    "department": "Computer Science"
+  },
+  "tokens": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
+
+**Error Responses:**
+- `401`: Geçersiz email/şifre
+- `401`: Email doğrulanmamış hesap
 
 **Token Süreleri:**
 - Access Token: 15 dakika
@@ -85,9 +125,13 @@ Access token'ı yeniler.
 **Response:** `200 OK`
 ```json
 {
-  "accessToken": "string"
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+
+**Error Responses:**
+- `401`: Geçersiz refresh token
+- `401`: Refresh token süresi dolmuş veya iptal edilmiş
 
 ### POST `/auth/logout`
 Kullanıcı çıkışı yapar.
@@ -99,12 +143,9 @@ Kullanıcı çıkışı yapar.
 }
 ```
 
-**Response:** `200 OK`
-```json
-{
-  "message": "Çıkış başarılı."
-}
-```
+**Response:** `204 No Content`
+
+**Not:** Body döndürülmez. Refresh token opsiyonel olarak gönderilirse geçersiz kılınır.
 
 ### POST `/auth/forgot-password`
 Şifre sıfırlama email'i gönderir.
@@ -119,9 +160,11 @@ Kullanıcı çıkışı yapar.
 **Response:** `200 OK`
 ```json
 {
-  "message": "Şifre sıfırlama linki email adresinize gönderildi."
+  "message": "If the account exists, a reset link has been sent."
 }
 ```
+
+**Not:** Güvenlik nedeniyle, email kayıtlı olsa da olmasa da aynı mesaj döndürülür.
 
 **Not:** Reset token 24 saat geçerlidir.
 
@@ -154,17 +197,19 @@ Kullanıcının kendi profil bilgilerini getirir.
 **Response:** `200 OK`
 ```json
 {
-  "id": "number",
-  "fullName": "string",
-  "email": "string",
-  "role": "string",
-  "phone": "string",
-  "profilePictureUrl": "string",
-  "status": "string",
-  "createdAt": "datetime",
-  "updatedAt": "datetime"
+  "id": 1,
+  "fullName": "John Doe",
+  "email": "john@example.com",
+  "role": "student",
+  "phone": "+905551234567",
+  "avatarUrl": "https://res.cloudinary.com/...",
+  "studentNumber": "S123456",
+  "department": "Computer Science"
 }
 ```
+
+**Error Responses:**
+- `401`: Token bulunamadı veya geçersiz
 
 ### PUT `/users/me`
 Kullanıcının kendi profil bilgilerini günceller.
@@ -182,10 +227,20 @@ Kullanıcının kendi profil bilgilerini günceller.
 **Response:** `200 OK`
 ```json
 {
-  "message": "Profil başarıyla güncellendi.",
-  "user": { ... }
+  "id": 1,
+  "fullName": "John Doe Updated",
+  "email": "john@example.com",
+  "role": "student",
+  "phone": "+905551234567",
+  "avatarUrl": null,
+  "studentNumber": "S123456",
+  "department": "Computer Science"
 }
 ```
+
+**Error Responses:**
+- `401`: Token bulunamadı veya geçersiz
+- `400`: Validation hatası
 
 ### POST `/users/me/change-password`
 Kullanıcının şifresini değiştirir.
@@ -218,10 +273,19 @@ Kullanıcının profil fotoğrafını yükler.
 **Response:** `200 OK`
 ```json
 {
-  "message": "Profil fotoğrafı başarıyla yüklendi.",
-  "profilePictureUrl": "string"
+  "avatarUrl": "https://res.cloudinary.com/cloud_name/image/upload/v1234567890/smart-campus-profiles/abc123.jpg"
 }
 ```
+
+**File Requirements:**
+- Format: JPG, PNG, JPEG
+- Max Size: 5MB
+- Upload: Cloudinary (otomatik resize 500x500)
+
+**Error Responses:**
+- `401`: Token bulunamadı veya geçersiz
+- `400`: Dosya bulunamadı
+- `400`: Geçersiz dosya formatı veya boyutu
 
 ### GET `/users`
 Admin kullanıcılar için kullanıcı listesi getirir.
@@ -238,15 +302,29 @@ Admin kullanıcılar için kullanıcı listesi getirir.
 **Response:** `200 OK`
 ```json
 {
-  "users": [...],
-  "pagination": {
+  "data": [
+    {
+      "id": 1,
+      "fullName": "John Doe",
+      "email": "john@example.com",
+      "role": "student",
+      "phone": null,
+      "avatarUrl": null,
+      "studentNumber": "S123456",
+      "department": "Computer Science"
+    }
+  ],
+  "meta": {
     "page": 1,
     "limit": 10,
-    "total": 100,
-    "totalPages": 10
+    "total": 100
   }
 }
 ```
+
+**Error Responses:**
+- `401`: Token bulunamadı veya geçersiz
+- `403`: Admin yetkisi gerekli
 
 ## Error Responses
 
