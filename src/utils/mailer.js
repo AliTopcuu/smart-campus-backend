@@ -1,10 +1,13 @@
 const nodemailer = require('nodemailer');
 
-const isMailConfigured = Boolean(process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASS);
+// MAIL_HOST'tan http:// veya https:// prefix'ini temizle
+const cleanMailHost = process.env.MAIL_HOST?.replace(/^https?:\/\//, '').trim();
+
+const isMailConfigured = Boolean(cleanMailHost && process.env.MAIL_USER && process.env.MAIL_PASS);
 
 const transporter = isMailConfigured
   ? nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
+      host: cleanMailHost,
       port: Number(process.env.MAIL_PORT) || 587,
       secure: false,
       auth: {
